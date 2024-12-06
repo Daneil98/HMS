@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %} Patient Form {% endblock %}
+
+{% block content %}
+    <h1>Patient {{username}}'s Form</h1>
+
+    <form method="post" enctype="multipart/form-data">
+        {{ form }}
+        {% csrf_token %}
+        <p><input type="submit" value="Add changes"></p>
+    </form>
+
+{% endblock %}

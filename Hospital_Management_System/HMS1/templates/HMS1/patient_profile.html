@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %} Patient Profile {% endblock %}
+
+
+{% block content %}
+
+    <h2> Patient Profile   </h2>
+    <p> Patient Name: <b> {{ first_name }} {{ last_name }}. </b>       <br>      Attend to this patient <a href="{% url 'patient_record_form' username %}"> now </a></p>
+    <p> Patient Vitals: </p>
+    <table class="table text-center"> 
+        <tr><td><b> Weight (Kg) </b></td>  <td><b> Height (m)  </b></td> <td><b> B.P. </b></td> <td><b> Temp (Celsius) </b></td> </tr>   
+        <tr><td><b> {{ vitals.weight }} </b></td>  <td><b> {{ vitals.height }}  </b></td> <td><b> {{ vitals.bp }} </b></td> <td><b> {{ vitals.temperature }} </b></td> </tr>
+    </table>
+
+    {% if records%}   
+        <h3> Medical Diagnostic History: </h3>
+        <table class="table text-center">
+            <tr><td><b> Date of examination </b></td>  <td><b> Symptoms  </b></td>  <td><b> Diagnosis </b></td>  <td><b> Prescription </b></td> </tr>    
+            {% for record in records%}
+                <tr><td><b> {{record.date_of_examination}} </b></td>  <td><b> {{record.symptoms}}  </b></td>  <td><b> {{record.diagnosis}}  </b></td> <td><b> {{record.prescription}}  </b></td> </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <h3> Medical Diagnostic History: </h3>
+        <table class="table text-center">
+            <tr><td><b> Date of examination </b></td>  <td><b> Diagnosis </b></td>  <td><b> Prescription </b></td> </tr>    
+    {% endif %}
+
+
+{% endblock %}

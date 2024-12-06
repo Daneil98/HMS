@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %} Drugs {% endblock %}
+
+{% block content %}
+    {% if searched %}
+        <h2> You searched for: {{ searched }} </h2>
+        <nav class="navbar navbar-default navbar-static-top">
+            <div class="container">
+                <div id="check" class="col-sm-2">
+                    <table class="table text-center">
+                        <tr><td><b> Drug name</b></td>  <td><b>Quantity</b></td> <td><b>In Stock</b></td></tr>  
+                        {% block sidebar %}
+                            <ul class="nav navbar-nav">
+                                <tr><td> {{ drugs.name }}</td> <td>{{ drugs.quantity }}</td>   <td> {{ drugs.available }} </td></tr>
+                            </ul>
+                        {% endblock %}
+                    </table>      
+                </div>    
+            </div>
+        </nav>
+    {% else %}
+        <h2> You forgot to search for a drug </h2>
+        <form class="d-flex" method="POST" action="{% url 'drug_search' %}">
+            {% csrf_token %}
+            <input class="form-control me-2" type="search" placeholder="Search drugs" aria-label="Search" name="searched">
+            <button class="btn btn-outline-secondary" type="submit">Search</button>
+        </form>
+    {% endif %}
+{% endblock %}
+

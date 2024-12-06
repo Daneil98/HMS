@@ -1,0 +1,41 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+
+
+
+    <head>
+
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{% block title %}{% endblock %}</title>
+        <link href="{% static "css/base.css" %}" rel="stylesheet">
+        
+    </head>
+
+
+    <body>
+
+        
+        <h1>VEIDT HOSPITALS</h1>
+        
+        <nav class= "navbar navar-default navbar-static-top">
+            <div class="container">
+                <div class="col-sm-2">
+                    {% block sidebar %}
+                        <ul class="nav navar-nav">
+                            <li><a href="{% url "login" %}">Staff Login</a></li>
+                            <li><a href="{% url "login" %}">Patient Login</a></li>
+                            <li><a href="{% url "patient_register" %}">Register</a></li>
+                        </ul>
+                    {% endblock %}
+                </div>    
+            </div>
+        </nav>
+
+    </body>
+</html>
+
+
+
