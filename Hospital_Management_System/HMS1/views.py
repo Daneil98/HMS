@@ -234,10 +234,19 @@ def appointment(request):
     form = AppointmentForm(request.POST)
     if request.method == 'POST':
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Appointment successfully set')
+            app = form.save(commit=False)
+            date = app.date_scheduled
+            time = app.time_scheduled
+            conflict = Appointments.objects.filter(Q(date_scheduled=date) & Q(time_scheduled=time) & Q(seen=False)).exists()            #checks if there is a conflict in appointment dates
+            if conflict:
+                messages.error(request, 'This time slot is already booked. Please pick another.')
+            else:
+                app.save()   
+                messages.success(request, 'Appointment successfully set')
+                form = AppointmentForm(request.POST)
         else:
-            form = AppointmentForm(request.POST)
+            messages.error(request, 'There was an error with your submission. Please check your inputs.')
+
     return render(request, 'HMS1/make_appointment.html', {'form': form})
              
              
