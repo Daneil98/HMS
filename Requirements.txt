@@ -1,0 +1,5 @@
+Django (Latest version)
+Python 3
+django rest framework
+Celery
+RabbitMQ
