@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %} Dashboard {% endblock %}
+
+{% block content %}
+    <h1> Dashboard </h1>
+    
+
+    {% if user.is_authenticated and user.is_doctor %}
+        <h2> Welcome <b>Dr. {{ user.username }} </h2>
+        <br>
+        <p>There are {{ number }} appointments and the next appointment is with: <a href="{% url "patient_record_form" next %}"> {{ next }} </a>  </p>
+        <form class ='d-flex' method=POST action={% url "search_patients" %}>
+            {% csrf_token %}
+            <input class ="form -control me-2" type='search' placeholder='Search Patients' aria-label = 'Search' name='Searched'>
+            <button class = 'btn-btn-outline-secondary' type='submit'>Search</button>
+        </form>
+    {% endif %}
+    
+
+
+    {% if user.is_authenticated and user.is_patient %}
+        <h2> Welcome <b>Mr/Mrs/Miss. {{ user.username }} </h2>
+        <p> You can schedule appointments <a href="{% url "make_appointment" %}"> here </a> </p>
+    {% endif %}
+
+
+
+    {% if user.is_authenticated and user.is_frontdesk %}
+        <h2> Welcome <b>RN {{ user.username }} </h2>
+        <p> You can register patients <a href="{% url "patient_register" %}"> here </a>       </p>
+    {% endif %}
+
+    
+    
+    {% if user.is_authenticated and user.is_pharmacist %}
+        <h2> Welcome <b>RPh {{ user.username }} </h2>
+        
+        <br>
+        <h3> Ticket updates </h3>
+        <ul class="nav navar-nav">
+            {% for ticket in tickets %}
+                <li> Patient {{ ticket.patient }} is awaiting his/her <a href="{% url "ticket" ticket.patient %}"> drugs </a> </li>
+            {% endfor %}
+        </ul>
+        <br><br><br><br><br>
+
+        <h3> Inventory updates </h3>
+        <ul class="nav navar-nav">
+            {% for finish in finishes %}
+                <li> {{ finish }} drug is about to run out. </li>
+            {% endfor %}
+        </ul>
+        <br>    
+        <p> You can go through the pharmacy inventory <a href="{% url "inventory" %}"> here </a> </p>
+    {% endif %}
+
+{% endblock %}
+
+

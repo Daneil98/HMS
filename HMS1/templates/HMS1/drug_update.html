@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %} Drug Profile {% endblock %}
+
+
+{% block content %}
+
+    <h2> Drug Profile   </h2>
+    <p> Drug Name: <b> {{ drug.name }} </b> </p>
+    <form method="post" enctype="multipart/form-data">
+        {{ form }}
+        {% csrf_token %}
+        <p><input type="submit" value="submit"></p>
+    </form>
+
+
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %} Patient Prescription Ticket {% endblock %}
+
+{% block content %}
+    <h1> {{ ticket.patient.first_name }}'s Prescription Ticket</h1>
+    <p> Patient name: <b> {{ ticket.patient.first_name }} {{ ticket.patient.last_name }} </b> </p>
+    <p> Patient Prescription: </p>
+    
+    <ul class="nav navar-nav">
+        <li>  <b> {{ ticket.prescription|linebreaksbr }} </b> </li>
+    </ul>    
+    <br>
+    <form method="post" enctype="multipart/form-data">
+        {{ form }}
+        {% csrf_token %}
+        <p><input type="submit" value="submit"></p>
+    </form>
+
+{% endblock %}

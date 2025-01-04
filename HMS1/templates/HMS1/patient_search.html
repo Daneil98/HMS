@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %} Patients {% endblock %}
+
+{% block content %}
+    {% if searched %}
+        <h2> You searched for: {{ searched }} </h2>
+        <nav class="navbar navbar-default navbar-static-top">
+            <div class="container">
+                <div id="check" class="col-sm-2">
+                    {% block sidebar %}
+                        {% for patient in patients %}
+                            <ul class="nav navbar-nav">
+                                <li><a href="{% url 'patient_profile' patient.first_name patient.last_name %}">{{ patient.first_name }} {{ patient.last_name }}</a></li>
+                            </ul>
+                        {% endfor %}
+                    {% endblock %}
+                </div>    
+            </div>
+        </nav>
+    {% else %}
+        <h2> You forgot to search for a patient </h2>
+        <form class="d-flex" method="POST" action="{% url 'patient_profile' %}">
+            {% csrf_token %}
+            <input class="form-control me-2" type="search" placeholder="Search Patients" aria-label="Search" name="searched">
+            <button class="btn btn-outline-secondary" type="submit">Search</button>
+        </form>
+    {% endif %}
+{% endblock %}
+

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %} Pharmacy Inventory {% endblock %}
+
+{% block content %}
+    <h1>Pharmacy Inventory</h1>                     
+    <form class ='d-flex' method=POST action={% url "search_drugs" %}>
+        {% csrf_token %}
+        <input class ="form -control me-2" type='search' placeholder='Search drugs' aria-label = 'Search' name='Searched'>
+        <button class = 'btn-btn-outline-secondary' type='submit'>Search</button>
+    </form>
+
+    {% if drugs %}
+            <table class="table text-center">
+                <tr><td><b> Drug name</b></td>  <td><b>Quantity</b></td> <td><b>In Stock</b></td>  <td><b>Increase</b></td> <td><b>Decrease</b></td> </tr>
+                {% for drug in drugs%}
+                    <tr>
+                        <td>{{ drug.name }}</td>
+                        <td>{{ drug.quantity }}</td>
+                        <td>{{ drug.available }}</td>
+                    
+                        <!-- Increase Form -->
+                        <td>
+                            <form method="post" action="{% url 'drug_update' drug.name %}">
+                                {% csrf_token %}
+                                <button type="submit" name="increase" class="btn btn-success">Increase</button>
+                                <input type="number" name="quantity" value="1" min="1" style="width: 70px;" class="form-control d-inline">
+                            </form>
+                        </td>
+                    
+                        <!-- Decrease Form -->
+                        <td>
+                            <form method="post" action="{% url 'drug_update' drug.name %}">
+                                {% csrf_token %}                               
+                                <button type="submit" name="decrease" class="btn btn-danger">Decrease</button>
+                                <input type="number" name="quantity" value="1" min="1" style="width: 70px;" class="form-control d-inline">
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+
+    {% else %}
+        <table class="table text-center">
+            <tr><td><b> Drug name</b></td>  <td><b>Quantity</b></td> <td><b>In Stock</b></td></tr>
+            <tr><td> </td> <td> </td>   <td> </td></tr>
+        </table>
+    {% endif %}
+
+    <h3> Add Drug to Inventory </h3>
+    <form method="post" enctype="multipart/form-data">
+        {{ form }}
+        {% csrf_token %}
+        <p><input type="submit" value="submit"></p>
+    </form>
+
+
+
+{% endblock %}
