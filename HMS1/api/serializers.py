@@ -50,10 +50,13 @@ class DoctorSerializer(serializers.ModelSerializer):
         user.save()
         return user
     
-class MedicalRecordSerializer(serializers.ModelSerializer):
+class PatientFormSerializer(serializers.ModelSerializer):
     class Meta:
         model = MedicalRecord
         fields = ['symptoms', 'diagnosis', 'prescription']
+
+class SearchedSerializer(serializers.Serializer):
+    first_name = serializers.CharField()
 
 class AppointmentSerializer(serializers.ModelSerializer):
     class Meta:
