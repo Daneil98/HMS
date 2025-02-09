@@ -33,7 +33,7 @@ Go to the project directory
 Install dependencies
 
 ```bash
-  pip install
+  pip install -r requirements.txt
 ```
 
 Start the server
@@ -49,4 +49,8 @@ Start the server
 - Role-based Access: Different access levels for doctors, patients, pharmacists and other roles.
 - Search and Filter: Advanced search and filtering options for patient and drugs info for doctors and pharmacists respectively.
 - Real Time updates: Real time updates about patient appointments, pharmacy inventory, patient profiles.
+
+CELERY_BROKER_URL = ''
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
 
