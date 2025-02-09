@@ -1,5 +1,7 @@
-Django (Latest version)
-Python 3
-django rest framework
-Celery
-RabbitMQ
+Django==4.2
+Python 3.9
+djangorestframework==3.14.0
+psycopg2-binary==2.9.9
+PyJWT==2.6.0
+djangorestframework-simplejwt==5.2.2
+celery==5.0.5
