@@ -2,8 +2,8 @@ from rest_framework import generics
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.permissions import IsAuthenticated, DjangoModelPermissionsOrAnonReadOnly
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import IsAuthenticated
 from ..models import *
 from django.db.models import Q
 from django.contrib import messages
@@ -21,7 +21,7 @@ class PatientRegisterView(APIView):
     permission_classes = [AllowAny]
     queryset = user.objects.all()
     
-    def post(self, request, *args, **kwargs):
+    def post(self, request,):
         serializer = PatientSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)   #Validates the data
         
@@ -34,22 +34,21 @@ class DoctorRegisterView(APIView):
     permission_classes = [AllowAny]
     queryset = user.objects.all()
     
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         serializer = DoctorSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)   #Validates the data
         
-        user = serializer.save(is_doctor=True)
-        
+        user = serializer.save(is_doctor=True)   
         return Response({'status': 'success', 'message': 'Account created successfully'}, status=status.HTTP_201_CREATED)
     
     
 class LoginView(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     queryset = user.objects.all()
     serializer_class = LoginSerializer
     
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
         
@@ -68,11 +67,11 @@ class LoginView(APIView):
 
         
 class Dashboard(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        number = Appointments.objects.filter(seen=False).count()
+        number = Appointments.objects.filter(user=request.user, seen=False).count()
         finishes = Pharmacy_Inventory.objects.filter(quantity__lte=5).values_list('name', flat=True)
         tickets = Ticket.objects.filter(dispensed=False) 
         
@@ -82,15 +81,25 @@ class Dashboard(APIView):
             'tickets': tickets    
         }
 
+        
         return Response(content, status=status.HTTP_200_OK)
 
 
 
-class PatientForm(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
+class Patient(APIView):
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated, IsDoctor]
  
-    
+    def get(self, request, username):           #This function searches for a patient
+        serializer = SearchedSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            patient = user.objects.filter(first_name=serializer.first_name).order_by('is_patient')
+            return Response({'status': 'success', 'message': 'Patient exists', 'patient': patient}, status=status.HTTP_200_OK)
+        else:
+            return Response({'status': 'failed', 'message': 'This patient does not exist'}, serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        
     def post(self, request, username):
         patient = get_object_or_404(user, username=username)
 
@@ -109,7 +118,7 @@ class PatientForm(APIView):
     
     
 class PatientProfile(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated, IsDoctor]
     
     def get(self, request, first_name, last_name):
@@ -131,11 +140,11 @@ class PatientProfile(APIView):
   
   
 class Appointment(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated, IsPatient, IsFrontdesk]
     queryset = Appointments.objects.all()
     
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         serializer = AppointmentSerializer(data=request.data)
         if serializer.is_valid():
             conflict = Appointments.objects.filter(Q(date_scheduled=serializer.date) & Q(time_scheduled=serializer.time) & Q(seen=False)).exists()            #checks if there is a conflict in appointment dates
@@ -143,18 +152,26 @@ class Appointment(APIView):
                 messages.error(request, 'This time slot is already booked. Please pick another.')
             else:
                 serializer.save()
-                return Response({'satus': 'success', 'message': 'Successfully booked an appointment'}, status=status.HTTP_200_OK)
+                return Response({'status': 'success', 'message': 'Successfully booked an appointment'}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
 class Pharmacy(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated, IsPharmacist]
     
     drug_finish.delay()
     
-    def post(self, request, *args, **kwargs):
+    def get(self, IsPharmacist):
+        drugs = Pharmacy_Inventory.objects.all()
+        
+        if drugs:
+            return Response({'status': 'success'}, drugs, status=status.HTTP_200_OK)
+        else:    
+            return Response({'status': 'success', 'message': 'There are no drugs in the pharmacy'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    def post(self, request):
         drugs = Pharmacy_Inventory.objects.all()
         serializer = InventorySerializer(data=request.data)
         if serializer.is_valid():
@@ -165,7 +182,7 @@ class Pharmacy(APIView):
   
 
 class Dispense(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated, IsPharmacist]
     
     
@@ -182,7 +199,7 @@ class Dispense(APIView):
         
 
 class Drug_update(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated, IsPharmacist]
     
     def post(self, request, drug_name):
