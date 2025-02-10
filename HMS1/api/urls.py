@@ -5,7 +5,7 @@ from . import views
 app_name = 'api'
 
 urlpatterns = [
-    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),        #Good
+#    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),        #Good
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),       #Good
     
     path('login/', views.LoginView.as_view(), name='login'),
