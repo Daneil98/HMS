@@ -25,6 +25,18 @@ Install dependencies
   pip install -r requirements.txt
 ```
 
+Prepare Migrations
+
+```bash
+  python manage.py makemigrations
+```
+
+Enforce Migrations
+
+```bash
+  python manage.py migrate
+```
+
 Start the server
 
 ```bash
@@ -45,6 +57,13 @@ Start the server
 To run this project, you will need to add the following environment variables to your .env file
 
 CELERY_BROKER_URL = ''
+
+
 CELERY_ACCEPT_CONTENT = ['json']
+
+
 CELERY_TASK_SERIALIZER = 'json'
+
+
+OPENROUTER_API_KEY = ''
 
