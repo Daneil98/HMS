@@ -22,6 +22,8 @@ urlpatterns = [
     path('search_patients/', views.search_patients, name='search_patients'),
     path('search_drugs/', views.search_drugs, name='search_drugs'),
     path('patient_profile/<str:first_name>/<str:last_name>/', views.patient_profile, name='patient_profile'),
+    path('patient_history/', views.patient_history, name='patient_history'),
+    path('health_report/<str:username>/', views.health_report_view, name='health_report'),
     path('ticket/<str:first_name>/', views.dispense, name='ticket'),
     path('drug_update/<str:drug_name>/', views.drug_update, name='drug_update'),
 ]
