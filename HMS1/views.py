@@ -9,9 +9,14 @@ from django.contrib import messages
 from .decorators import *
 from django.http import JsonResponse
 from .tasks import *
+from .health_summary import get_vital_summary  # We'll create this
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 
 # Create your views here
-
 
 def base(request):
     return render(request, 'base.html') 
@@ -207,9 +212,61 @@ def patient_profile(request, first_name, last_name):
     if not records and not vitals:
         return JsonResponse({'message': 'No matching records found'}, status=404)
     
-    return render(request, 'HMS1/patient_profile.html', {'vitals': vitals, 'records': records, 'first_name': first_name, 'last_name': last_name, 'username': username})
+    return render(request, 'HMS1/patient_profile.html', 
+            {'vitals': vitals, 'records': records, 'first_name': first_name, 'last_name': last_name, 'username': username})
 
-    
+ 
+@login_required
+@patient_required
+def patient_history(request):
+    user_name = request.user.username
+    records = MedicalRecord.objects.filter(patient__username=user_name).all()
+    vitals = PatientVitals.objects.filter(patient__username=user_name).all()
+
+    if not records and not vitals:
+        return JsonResponse({'message': 'No matching records found'}, status=404)
+            
+    return render(request, 'HMS1/patient_history.html', 
+            {'vitals': vitals, 'records': records, 'username': user_name,})   
+
+
+
+@login_required
+@patient_required
+def health_report_view(request, username):
+    try:
+        # Get data from database
+        vitals = PatientVitals.objects.filter(patient__username=username)
+        
+        if not vitals.exists():
+            messages.error(request, "This user has no recorded vitals")
+            return render(request, 'HMS1/health_report.html', {'username': username})
+        
+        try:
+            # Process with API
+            api_response = get_vital_summary(vitals)
+            
+            # Format response for template
+            report_data = {
+                'content': api_response['choices'][0]['message']['content'],
+                'generated_at': api_response['created'],  # Unix timestamp
+                'model_used': api_response['model'],
+                'username': username
+            }
+            
+            return render(request, 'HMS1/health_report.html', {'report': report_data})
+            
+        except Exception as api_error:
+            logger.error(f"API processing error for {username}: {str(api_error)}")
+            messages.error(request, "Failed to generate AI health analysis")
+            return render(request, 'HMS1/health_report.html', {'username': username})
+            
+    except Exception as e:
+        logger.error(f"System error generating report for {username}: {str(e)}")
+        messages.error(request, "System error generating health report")
+        return render(request, 'HMS1/health_report.html', {'username': username})
+
+
 
 @login_required
 @patient_required
@@ -266,6 +323,7 @@ def dispense(request, first_name):
     return render(request, 'HMS1/ticket.html', {'ticket': ticket, 'form': form})
     
 
+
 @login_required
 @pharmacist_required
 def drug_update(request, drug_name):
@@ -278,14 +336,14 @@ def drug_update(request, drug_name):
         if 'increase' in request.POST:  #Checks if the 'increase' button was clicked
             if form1.is_valid():
                 quantity = form1.cleaned_data['quantity']
-                increase_inventory.delay(drug_name, quantity)
+                increase_inventory(drug_name, quantity)
             else:
                 return HttpResponseBadRequest("Invalid data for decreasing quantity.")
         elif 'decrease' in request.POST:  #Checks if the 'decrease' button was clicked
             if form2.is_valid():
                 quantity = form2.cleaned_data['quantity']
                 #Avoids negative quantities
-                decrease_inventory.delay(drug_name, quantity)
+                decrease_inventory(drug_name, quantity)
             else:
                 return HttpResponseBadRequest("Invalid data for decreasing quantity.")
         else:
