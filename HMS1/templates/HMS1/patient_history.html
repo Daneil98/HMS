@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %} Patient Profile {% endblock %}
+
+
+{% block content %}
+
+    <h2> Patient {{user_name}} Profile</h2>
+    <p>You can generate an AI summary and recommendations of your health status <a href="{% url 'health_report' request.user.username %}">here</a>.</p>
+    {% if vitals %} 
+        <p> Patient Vitals: </p>
+        <table class="table text-center"> 
+            <tr><td><b> Weight (Kg) </b></td>  <td><b> Height (m)  </b></td> <td><b> B.P. </b></td> <td><b> Temp (Celsius) </b></td> </tr>   
+            {% for vital in vitals%}
+                <tr><td><b> {{ vital.weight }} </b></td>  <td><b> {{ vital.height }}  </b></td> <td><b> {{ vital.bp }} </b></td> <td><b> {{ vital.temperature }} </b></td> </tr>
+            {% endfor %}
+        </table>
+
+    {% else %}
+        <p> Patient Vitals: </p>
+        <table class="table text-center"> 
+            <tr><td><b> Weight (Kg) </b></td>  <td><b> Height (m)  </b></td> <td><b> B.P. </b></td> <td><b> Temp (Celsius) </b></td> </tr>
+        </table>  
+    {% endif %}  
+    
+    
+    
+    {% if records%}   
+        <h3> Medical Diagnostic History: </h3>
+        <table class="table text-center">
+            <tr><td><b> Date of examination </b></td>  <td><b> Symptoms  </b></td>  <td><b> Diagnosis </b></td></tr>    
+            {% for record in records%}
+                <tr><td><b> {{record.date_of_examination}} </b></td>  <td><b> {{record.symptoms}}  </b></td>  <td><b> {{record.diagnosis}}  </b></td> </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <h3> Medical Diagnostic History: </h3>
+        <table class="table text-center">
+            <tr><td><b> Date of examination </b></td>  <td><b> Diagnosis </b></td> </tr>    
+        </table>
+    {% endif %}
+
+
+{% endblock %}
