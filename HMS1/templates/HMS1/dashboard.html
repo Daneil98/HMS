@@ -22,6 +22,7 @@
     {% if user.is_authenticated and user.is_patient %}
         <h2> Welcome <b>Mr/Mrs/Miss. {{ user.username }} </h2>
         <p> You can schedule appointments <a href="{% url "make_appointment" %}"> here </a> </p>
+        <p> You can view your medical history<a href="{% url "patient_history" %}"> here </a> </p>
     {% endif %}
 
 
