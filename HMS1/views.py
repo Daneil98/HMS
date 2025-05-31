@@ -253,7 +253,7 @@ def patient_history(request):
 @login_required
 @patient_required
 def health_report_view(request, username):
-    username = request.user
+    user_name = request.user.username
     try:
         # Get data from database
         vitals = PatientVitals.objects.filter(patient__username=username)
@@ -274,7 +274,7 @@ def health_report_view(request, username):
                 'username': username
             }
             
-            return render(request, 'HMS1/health_report.html', {'report': report_data})
+            return render(request, 'HMS1/health_report.html', {'report': report_data, 'user_name': user_name})
             
         except Exception as api_error:
             logger.error(f"API processing error for {username}: {str(api_error)}")
