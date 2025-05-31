@@ -2,8 +2,30 @@ import json
 import requests
 from django.conf import settings
 import logging
+import re
 
 logger = logging.getLogger(__name__)
+
+
+
+
+def clean_api_response(text):
+    # Remove markdown headers (###, ####) but keep their text
+    text = re.sub(r'^#+\s*', '', text, flags=re.MULTILINE)
+    
+    # Remove bold/italic markers (**text** -> text)
+    text = re.sub(r'\*\*([^\*]+)\*\*', r'\1', text)
+    text = re.sub(r'\*([^\*]+)\*', r'\1', text)
+    
+    # Remove horizontal rules (---)
+    text = re.sub(r'^---+\s*', '', text, flags=re.MULTILINE)
+    
+    # Remove bullet points (✔, •) but keep the text
+    text = re.sub(r'^[✔•]\s*', '', text, flags=re.MULTILINE)
+    
+    # Trim excessive whitespace
+    text = re.sub(r'\n\s*\n', '\n\n', text)  # Reduce multiple newlines
+    return text.strip()
 
 
 def format_vitals_data(vitals_queryset):
@@ -47,9 +69,16 @@ def get_vital_summary(vitals_queryset, model="deepseek/deepseek-chat-v3-0324:fre
             timeout=15
         )
         response.raise_for_status()
+        api_response = response.json()
         
-        return response.json()
+        return {
+            'raw': api_response,
+            'cleaned': clean_api_response(api_response['choices'][0]['message']['content']),
+            'model': api_response['model'],
+            'created': api_response['created']
+        }
         
+    
     except requests.exceptions.RequestException as e:
         logger.error(f"API request failed: {str(e)}")
         raise
