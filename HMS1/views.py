@@ -47,43 +47,64 @@ def user_login(request):
     
 
 def patient_register(request):
-    user_form = UserRegistrationForm(request.POST)
     if request.method == 'POST':
-        if user_form.is_valid():  
-            first_name = user_form.cleaned_data['first_name']
-            last_name = user_form.cleaned_data['last_name']          
-            username = user_form.cleaned_data['username']
-            password = user_form.cleaned_data['password']
+        user_form = UserRegistrationForm(request.POST)
+        if user_form.is_valid():
+            cd = user_form.cleaned_data
             
-            # Check if a user with this username already exists
-            if user.objects.filter(user__username=username).exists():
-                # Handle the case where the username is already taken
-                raise ValueError("A user with this username already exists.")
-            new_user = user.objects.create_user(first_name=first_name, last_name=last_name, username=username, password=password, is_patient=True)
-            return render(request, 'HMS1/register_done.html', {'new_user': new_user})
+            # Check username existence (corrected)
+            if user.objects.filter(username=cd['username']).exists():
+                user_form.add_error('username', 'This username is already taken')
+                return render(request, 'HMS1/patient_register.html', {'user_form': user_form})
+            
+            try:
+                new_user = user.objects.create_user(
+                    first_name=cd['first_name'],
+                    last_name=cd['last_name'],
+                    username=cd['username'],
+                    password=cd['password'],
+                    sex=cd['sex'],
+                    date_of_birth=cd['date_of_birth'],
+                    phone=cd['phone'],
+                    is_patient=True
+                )
+                return render(request, 'HMS1/register_done.html', {'new_user': new_user})
+            except Exception as e:
+                user_form.add_error(None, f'Registration error: {str(e)}')
     else:
         user_form = UserRegistrationForm()
+    
     return render(request, 'HMS1/patient_register.html', {'user_form': user_form})
 
 
 def doctor_register(request):
-    user_form = UserRegistrationForm(request.POST)
     if request.method == 'POST':
+        user_form = UserRegistrationForm(request.POST)
         if user_form.is_valid():
-            username = user_form.cleaned_data['username']
-            first_name = user_form.cleaned_data['first_name']
-            last_name = user_form.cleaned_data['last_name']          
-            username = user_form.cleaned_data['username']
-            password = user_form.cleaned_data['password']
+            cd = user_form.cleaned_data
             
-            # Check if a user with this username already exists
-            if user.objects.filter(user__username=username).exists():
-                # Handle the case where the username is already taken
-                raise ValueError("A user with this username already exists.")
-            new_user = user.objects.create_user(first_name=first_name, last_name=last_name, username=username, password=password, is_doctor=True)
-            return render(request, 'HMS1/register_done.html', {'new_user': new_user})
+            # Check username existence (corrected)
+            if user.objects.filter(username=cd['username']).exists():
+                user_form.add_error('username', 'This username is already taken')
+                return render(request, 'HMS1/doctor_register.html', {'user_form': user_form})
+            
+            try:
+                new_user = user.objects.create_user(
+                    first_name=cd['first_name'],
+                    last_name=cd['last_name'],
+                    username=cd['username'],
+                    password=cd['password'],
+                    sex=cd['sex'],
+                    date_of_birth=cd['date_of_birth'],
+                    phone=cd['phone'],
+                    is_doctor=True
+                )
+                return render(request, 'HMS1/register_done.html', {'new_user': new_user})
+            except Exception as e:
+                user_form.add_error(None, f'Registration error: {str(e)}')
     else:
         user_form = UserRegistrationForm()
+    
     return render(request, 'HMS1/doctor_register.html', {'user_form': user_form})
 
 
@@ -120,7 +141,8 @@ def dashboard(request):
         nxt = Appointments()
         next= None
         
-    return render(request, 'HMS1/dashboard.html', {'section': 'dashboard', 'number': number, 'next': next, 'finishes': list(finishes), 'tickets' : tickets})
+    return render(request, 'HMS1/dashboard.html', {'section': 'dashboard', 'number': number, 'next': next,
+                                                   'finishes': list(finishes), 'tickets' : tickets})
 
 
 
@@ -209,8 +231,7 @@ def patient_profile(request, first_name, last_name):
     vitals = PatientVitals.objects.filter(patient__first_name=first_name, patient__last_name = last_name).first()
     patient = user.objects.filter(first_name = first_name, last_name = last_name).first()
     username = patient.username
-    if not records and not vitals:
-        return JsonResponse({'message': 'No matching records found'}, status=404)
+
     
     return render(request, 'HMS1/patient_profile.html', 
             {'vitals': vitals, 'records': records, 'first_name': first_name, 'last_name': last_name, 'username': username})
@@ -223,8 +244,6 @@ def patient_history(request):
     records = MedicalRecord.objects.filter(patient__username=user_name).all()
     vitals = PatientVitals.objects.filter(patient__username=user_name).all()
 
-    if not records and not vitals:
-        return JsonResponse({'message': 'No matching records found'}, status=404)
             
     return render(request, 'HMS1/patient_history.html', 
             {'vitals': vitals, 'records': records, 'username': user_name,})   
@@ -234,6 +253,7 @@ def patient_history(request):
 @login_required
 @patient_required
 def health_report_view(request, username):
+    username = request.user
     try:
         # Get data from database
         vitals = PatientVitals.objects.filter(patient__username=username)
@@ -248,7 +268,7 @@ def health_report_view(request, username):
             
             # Format response for template
             report_data = {
-                'content': api_response['choices'][0]['message']['content'],
+                'content': api_response['cleaned'],
                 'generated_at': api_response['created'],  # Unix timestamp
                 'model_used': api_response['model'],
                 'username': username
